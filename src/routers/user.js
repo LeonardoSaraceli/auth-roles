@@ -1,10 +1,11 @@
-const express = require("express");
-const {
-  createUser
-} = require('../controllers/user');
+const express = require("express")
+const { createUser, getAllUsers, deleteUser } = require("../controllers/user")
+const { verifyToken, isAdmin } = require("../middlewares/auth")
 
-const router = express.Router();
+const router = express.Router()
 
-router.post("/", createUser);
+router.post("/", createUser)
+router.get("/", verifyToken, isAdmin, getAllUsers)
+router.delete("/:id", verifyToken, isAdmin, deleteUser)
 
-module.exports = router;
+module.exports = router

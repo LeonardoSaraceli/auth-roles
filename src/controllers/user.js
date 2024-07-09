@@ -1,26 +1,34 @@
 const { PrismaClientKnownRequestError } = require("@prisma/client")
-const { createUserDb } = require('../domains/user.js')
+const {
+  createUserDb,
+  getAllUsersDb,
+  deleteUserDb,
+} = require("../domains/user.js")
+const jwt = require("jsonwebtoken")
 
 const createUser = async (req, res) => {
-  const {
-    username,
-    password
-  } = req.body
+  const { username, password, role } = req.body
 
   if (!username || !password) {
     return res.status(400).json({
-      error: "Missing fields in request body"
+      error: "Missing fields in request body",
     })
   }
 
   try {
-    const createdUser = await createUserDb(username, password)
+    const createdUser = await createUserDb(username, password, role)
+    const token = jwt.sign({ sub: createdUser.id }, process.env.JWT_SECRET)
 
-    return res.status(201).json({ user: createdUser })
+    return res.status(201).json({
+      user: createdUser,
+      token,
+    })
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError) {
       if (e.code === "P2002") {
-        return res.status(409).json({ error: "A user with the provided username already exists" })
+        return res
+          .status(409)
+          .json({ error: "A user with the provided username already exists" })
       }
     }
 
@@ -28,6 +36,38 @@ const createUser = async (req, res) => {
   }
 }
 
+const getAllUsers = async (req, res) => {
+  const users = await getAllUsersDb()
+
+  res.json({
+    users,
+  })
+}
+
+const deleteUser = async (req, res) => {
+  const id = Number(req.params.id)
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      error: "The id must be a number",
+    })
+  }
+
+  const user = await deleteUserDb(id)
+
+  if (!user) {
+    return res.status(404).json({
+      error: "User not found",
+    })
+  }
+
+  res.json({
+    user,
+  })
+}
+
 module.exports = {
-  createUser
+  createUser,
+  getAllUsers,
+  deleteUser,
 }
