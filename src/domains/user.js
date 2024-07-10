@@ -1,17 +1,13 @@
 const prisma = require("../utils/prisma")
 const bcrypt = require("bcrypt")
 
-const createUserDb = async (username, password, role) => {
-  const data = {
-    username,
-    passwordHash: await bcrypt.hash(password, 6),
-  }
-
-  if (role) {
-    data.role = role
-  }
-
-  const user = await prisma.user.create({ data })
+const createUserDb = async (username, password) => {
+  const user = await prisma.user.create({
+    data: {
+      username,
+      passwordHash: await bcrypt.hash(password, 6),
+    },
+  })
   delete user.passwordHash
   return user
 }

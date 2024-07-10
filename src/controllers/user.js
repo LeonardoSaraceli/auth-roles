@@ -7,7 +7,7 @@ const {
 const jwt = require("jsonwebtoken")
 
 const createUser = async (req, res) => {
-  const { username, password, role } = req.body
+  const { username, password } = req.body
 
   if (!username || !password) {
     return res.status(400).json({
@@ -16,11 +16,11 @@ const createUser = async (req, res) => {
   }
 
   try {
-    const createdUser = await createUserDb(username, password, role)
-    const token = jwt.sign({ sub: createdUser.id }, process.env.JWT_SECRET)
+    const user = await createUserDb(username, password)
+    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET)
 
     return res.status(201).json({
-      user: createdUser,
+      user,
       token,
     })
   } catch (e) {

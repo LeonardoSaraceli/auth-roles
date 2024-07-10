@@ -11,6 +11,8 @@ async function seed() {
     users.push(user)
   }
 
+  await createAdminUser()
+
   process.exit(0)
 }
 
@@ -37,6 +39,28 @@ async function createUser(username, password) {
   console.log('User created', user)
 
   return user
+}
+
+async function createAdminUser() {
+  const adminUser = await prisma.user.create({
+    data: {
+      username: "Lodi",
+      passwordHash: await bcrypt.hash("12345", 8),
+      role: "ADMIN",
+      posts: {
+        create: {
+          title: "Hello world"
+        }
+      }
+    },
+    include: {
+      posts: true
+    }
+  })
+
+  console.log("Admin user created", adminUser)
+
+  return adminUser
 }
 
 seed()
